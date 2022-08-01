@@ -1,0 +1,112 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+class Admin extends CI_Controller {
+    /**
+     *Created by : Amit Sharma
+     *Created At : 20-6-2022
+     *Description : For Admin Functions
+     */
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('login/Signin_Model');
+		$this->load->model('admin/Crud_Model');
+    }
+    public function dashboard() {
+        $this->load->view('admin/dashboard');
+    }
+public function addnewblog() 
+	{
+        $this->form_validation->set_rules('title', 'Title', 'trim|required');
+        if (empty($_FILES['file']['name'])) {
+            $this->form_validation->set_rules('file', 'Image', 'required');
+        }
+        $this->form_validation->set_rules('editor1', 'Content', 'trim|required');
+        
+		if ($this->form_validation->run() == FALSE) {
+            $this->load->view('admin/addnewblog');
+        } else {
+            if (isset($_POST['submit'])) {
+                $data = $_POST['editor1'];
+                $data = trim($data);
+                $data = stripslashes($data);
+                $data = htmlspecialchars($data);
+                // echo "<pre>";
+                 $contents=$data;
+				//print_R($contents);	
+				
+				// exit;
+                $data = array();
+                if (!empty($_FILES['file']['name'])) {
+                    // Set preference
+                    $config['upload_path'] = 'upload/';
+                    $config['allowed_types'] = 'jpg|jpeg|png|gif';
+                    //$config['max_size'] = '100'; // max_size in kb
+                    $config['file_name'] =time().'-'.$_FILES["file"]['name'];
+                   
+                    $this->load->library('upload', $config);
+                    // File upload
+                    if ($this->upload->do_upload('file')) {
+                        // Get data about the file
+                        $uploadData = $this->upload->data();
+                       
+					   $filename = $uploadData['file_name'];
+					   $title = trim($_POST['title']);		
+					   $content=$data;
+						
+						$blogs = array(
+							'title'=>$title,
+							'image'=>$filename,
+							'description'=>$contents,
+							'CreatedAt'=>date('Y-m-d H:i:s')
+						);
+						/* Passing data to model */
+						$data['response']=$this->Crud_Model->add_blogs($blogs);
+						//$data['response'] = 'successfully uploaded ' . $filename;
+						if($data['response']=="1")
+							{
+								$this->session->set_flashdata('success', 'Blog added successfully');
+								redirect("admin/addblog");
+							}
+						else
+							{
+								$this->session->set_flashdata('error', 'Something went wrong');
+								redirect("admin/addblog");
+							}	
+						
+						
+					} else {
+                        $error = array('error' => $this->upload->display_errors());
+                        //echo $this->upload->display_errors();
+                        //echo "here";
+                    }
+                } else {
+                    //echo "yess hereeeee";
+                    $data['response'] = 'failed';
+                }
+                //	echo "<pre>"; print_R($data);
+                
+            } else {
+                $this->load->view('admin/addnewblog');
+            }
+        }
+    }
+	
+	/*Getting all blogs and passing to view */
+    public function allblogs() 
+	{
+		 $data['result']=$this->Crud_Model->get_all_blogs();
+		 $this->load->view('admin/allblogs',$data);
+	}
+	
+	/*Getting all blogs and passing to view */
+    public function editblog() 
+	{
+		  $id = $this->uri->segment(3);
+		  $data['result']=$this->Crud_Model->update_blog($id);
+		  echo "<pre>";print_R($data['result']);
+		 //$data['result']=$this->Crud_Model->get_all_blogs();
+		 //$this->load->view('admin/allblogs',$data);
+	}
+	
+	
+}

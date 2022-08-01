@@ -1,0 +1,50 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+class Crud_Model extends CI_Model
+	{
+		public function add_blogs($blogs)
+			{
+				$this->db->insert('sl_blogs',$blogs);
+				// $query = "INSERT INTO sl_blogs (title,image) VALUES(?,?)";
+
+				// $this->db->query(
+					// $query,
+					// array($blogs['title'],$blogs['description'])
+				// );
+				//echo $this->db->last_query();
+				//exit;
+				
+				$this->db->trans_complete();
+				if ($this->db->trans_status() === FALSE) {
+					return false;
+			   } else {
+						return true;
+				}
+			}
+public function get_all_blogs()
+	{
+	    $this->db->select('sb.id,sb.title,sb.image,sb.description,sb.CreatedAt');
+		$this->db->from('sl_blogs sb');
+		$this->db->order_by("sb.id", "DESC");
+		$query = $this->db->get();
+		if ( $query->num_rows() > 0 )
+			{
+					$row = $query->result_array();
+				return $row;
+			}
+		else
+			{
+				return false;
+			}	
+	}
+
+public function update_blog($id="")
+{
+	echo "id is ".$id;
+}
+
+
+	
+			
+			
+	}
